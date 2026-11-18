@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archive Button Dashboard</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f5fb;color:#1e293b}
+
+.sidebar{
+ position:fixed;top:0;bottom:0;width:250px;
+ background:#111c35;color:white;padding:28px 18px;
+ overflow-y:auto;
+}
+.logo{font-size:25px;font-weight:bold;margin-bottom:35px}
+.logo span{color:#818cf8}
+.nav-title{font-size:11px;color:#94a3b8;margin:23px 12px 9px}
+.nav{
+ padding:13px 14px;margin:5px 0;border-radius:9px;
+ cursor:pointer;color:#cbd5e1;font-size:14px;
+}
+.nav:hover,.nav.active{background:#34436a;color:white}
+
+.main{margin-left:250px;padding:32px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px}
+h1{font-size:27px}
+.subtitle{color:#64748b;margin-top:8px;font-size:14px}
+.profile{background:white;padding:13px 18px;border-radius:10px}
+
+.cards{
+ display:grid;grid-template-columns:repeat(4,1fr);
+ gap:18px;margin:28px 0;
+}
+.card{
+ background:white;padding:22px;border-radius:14px;
+ box-shadow:0 3px 15px #0f172a09;
+}
+.card p{color:#64748b;font-size:13px}
+.number{font-size:30px;font-weight:bold;margin-top:12px}
+.blue{color:#4f46e5}
+.green{color:#059669}
+.purple{color:#9333ea}
+.orange{color:#ea580c}
+
+.panel{
+ background:white;padding:24px;border-radius:14px;
+ margin-bottom:22px;box-shadow:0 3px 15px #0f172a08;
+}
+.panel h2{font-size:20px;margin-bottom:17px}
+
+input,textarea{
+ width:100%;padding:12px;margin:8px 0 15px;
+ border:1px solid #dbe2ed;border-radius:8px;font:inherit;
+}
+textarea{min-height:100px;resize:vertical}
+label{font-size:13px;font-weight:bold}
+
+button{
+ padding:11px 17px;border:0;border-radius:8px;
+ background:#4f46e5;color:white;cursor:pointer;
+}
+button:hover{opacity:.85}
+
+.upload{
+ border:2px dashed #a5b4fc;background:#f8faff;
+ border-radius:12px;padding:25px;
+}
+.small{font-size:12px;color:#64748b;margin:8px 0}
+.item{
+ border:1px solid #e5e7eb;border-radius:11px;
+ padding:17px;margin:12px 0;
+ display:flex;justify-content:space-between;
+ align-items:center;gap:15px;
+}
+.item-info{min-width:0}
+.item-info strong{display:block;margin-bottom:8px;overflow-wrap:anywhere}
+.meta{font-size:12px;color:#64748b}
+.status{
+ display:inline-block;padding:6px 10px;
+ border-radius:20px;font-size:12px;
+ background:#dcfce7;color:#15803d;margin-top:9px;
+}
+.status.archived{background:#ede9fe;color:#6d28d9}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.restore{background:#059669}
+.delete{background:#dc2626}
+.edit{background:#64748b}
+.hidden{display:none!important}
+.empty{text-align:center;padding:35px;color:#94a3b8}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.quick button{width:100%;padding:20px 10px}
+
+@media(max-width:850px){
+ .sidebar{width:70px;padding:15px 7px}
+ .logo{font-size:12px;overflow:hidden}
+ .nav{font-size:0;text-align:center;padding:14px 5px}
+ .nav-title{font-size:0}
+ .main{margin-left:70px;padding:16px}
+ .cards{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:550px){
+ .cards{grid-template-columns:1fr 1fr;gap:9px}
+ .card{padding:13px}
+ .item{align-items:flex-start;flex-direction:column}
+ .quick{grid-template-columns:1fr}
+ h1{font-size:21px}
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+<div class="logo">📦 <span>Archive</span></div>
+
+<div class="nav active" onclick="openPage('dashboard',this)">▦ &nbsp; Dashboard</div>
+
+<div class="nav-title">FILE MANAGEMENT</div>
+<div class="nav" onclick="openPage('files-all',this)">📁 &nbsp; All Files</div>
+<div class="nav" onclick="openPage('files-active',this)">📂 &nbsp; Active Files</div>
+<div class="nav" onclick="openPage('files-archived',this)">🗄 &nbsp; Archived Files</div>
+
+<div class="nav-title">EMAIL MANAGEMENT</div>
+<div class="nav" onclick="openPage('emails-all',this)">✉ &nbsp; All Emails</div>
+<div class="nav" onclick="openPage('emails-active',this)">📩 &nbsp; Active Emails</div>
+<div class="nav" onclick="openPage('emails-archived',this)">🗄 &nbsp; Archived Emails</div>
+
+<div class="nav-title">NOTES MANAGEMENT</div>
+<div class="nav" onclick="openPage('notes-all',this)">📝 &nbsp; All Notes</div>
+<div class="nav" onclick="openPage('notes-active',this)">📒 &nbsp; Active Notes</div>
+<div class="nav" onclick="openPage('notes-archived',this)">🗄 &nbsp; Archived Notes</div>
+
+</aside>
+
+<main class="main">
+
+<div class="top">
+ <div>
+  <h1 id="pageTitle">Dashboard</h1>
+  <p class="subtitle">Manage your files, emails and notes in one place.</p>
+ </div>
+ <div class="profile">👤 Admin</div>
+</div>
+
+<section class="cards" id="dashboardCards">
+ <div class="card"><p>Total Items</p><div class="number blue" id="totalCount">0</div></div>
+ <div class="card"><p>Active Items</p><div class="number green" id="activeCount">0</div></div>
+ <div class="card"><p>Archived Items</p><div class="number purple" id="archivedCount">0</div></div>
+ <div class="card"><p>Categories</p><div class="number orange">3</div></div>
+</section>
+
+<section class="panel" id="quickPanel">
+<h2>Manage Your Items</h2>
+<div class="quick">
+<button onclick="openPage('files-all')">📁<br><br>Manage Files</button>
+<button onclick="openPage('emails-all')">✉<br><br>Manage Emails</button>
+<button onclick="openPage('notes-all')">📝<br><br>Manage Notes</button>
+</div>
+</section>
+
+<section class="panel hidden" id="addPanel">
+
+<h2 id="formHeading">Add New Item</h2>
+
+<div id="fileForm" class="hidden">
+<label>Choose File From Laptop</label>
+<div class="upload">
+<input type="file" id="fileInput">
+<p class="small">Select PDF, JPG, PNG, DOC, DOCX or other files.</p>
+<button onclick="addFile()">+ Upload File</button>
+</div>
+</div>
+
+<div id="emailForm" class="hidden">
+<label>Enter Email Address</label>
+<input
+ id="emailAddress"
+ type="email"
+ placeholder="example@gmail.com"
+>
+<button onclick="addEmail()">+ Add Email</button>
+</div>
+
+<div id="noteForm" class="hidden">
+<label>Note Title</label>
+<input id="noteTitle" placeholder="Enter note title">
+
+<label>Note Description</label>
+<textarea id="noteContent" placeholder="Write your notes here..."></textarea>
+
+<button onclick="addNote()">Save Note</button>
+</div>
+
+</section>
+
+<section class="panel" id="listPanel">
+<h2 id="listHeading">Recent Items</h2>
+<input id="searchBox" placeholder="🔍 Search items..." oninput="renderItems()">
+<div id="itemsList"></div>
+</section>
+
+</main>
+
+<script>
+
+let items=[];
+let currentPage="dashboard";
+
+function openPage(page,element){
+
+currentPage=page;
+
+document.querySelectorAll(".nav").forEach(n=>n.classList.remove("active"));
+
+if(element) element.classList.add("active");
+
+const titles={
+dashboard:"Dashboard",
+"files-all":"All Files",
+"files-active":"Active Files",
+"files-archived":"Archived Files",
+"emails-all":"All Emails",
+"emails-active":"Active Emails",
+"emails-archived":"Archived Emails",
+"notes-all":"All Notes",
+"notes-active":"Active Notes",
+"notes-archived":"Archived Notes"
+};
+
+document.getElementById("pageTitle").textContent=titles[page];
+
+let dashboard=page==="dashboard";
+let type=page.split("-")[0];
+let isAll=page.endsWith("-all");
+
+document.getElementById("dashboardCards").classList.toggle("hidden",!dashboard);
+document.getElementById("quickPanel").classList.toggle("hidden",!dashboard);
+document.getElementById("addPanel").classList.toggle("hidden",dashboard);
+
+document.getElementById("fileForm").classList.toggle("hidden",!(type==="files"&&isAll));
+document.getElementById("emailForm").classList.toggle("hidden",!(type==="emails"&&isAll));
+document.getElementById("noteForm").classList.toggle("hidden",!(type==="notes"&&isAll));
+
+document.getElementById("formHeading").textContent=
+type==="files"?"Upload New File":
+type==="emails"?"Add Email Address":"Create New Note";
+
+document.getElementById("listHeading").textContent=
+dashboard?"Recent Active Items":titles[page];
+
+document.getElementById("searchBox").value="";
+
+renderItems();
+}
+
+// ADD FILE
+function addFile(){
+
+let input=document.getElementById("fileInput");
+let file=input.files[0];
+
+if(!file){
+alert("Please select a file!");
+return;
+}
+
+items.push({
+id:Date.now()+Math.random(),
+type:"file",
+name:file.name,
+detail:file.type||"File",
+file:file,
+archived:false
+});
+
+input.value="";
+renderItems();
+alert("File added successfully!");
+}
+
+// ADD EMAIL ADDRESS
+function addEmail(){
+
+let email=document.getElementById("emailAddress").value.trim();
+
+if(!email){
+alert("Please enter an email address!");
+return;
+}
+
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+alert("Please enter a valid email address!");
+return;
+}
+
+items.push({
+id:Date.now()+Math.random(),
+type:"email",
+name:email,
+detail:"Email Address",
+archived:false
+});
+
+document.getElementById("emailAddress").value="";
+
+renderItems();
+alert("Email added successfully!");
+}
+
+// ADD NOTE
+function addNote(){
+
+let title=document.getElementById("noteTitle").value.trim();
+let content=document.getElementById("noteContent").value.trim();
+
+if(!title||!content){
+alert("Please enter note title and content!");
+return;
+}
+
+items.push({
+id:Date.now()+Math.random(),
+type:"note",
+name:title,
+content:content,
+detail:"Personal Note",
+archived:false
+});
+
+document.getElementById("noteTitle").value="";
+document.getElementById("noteContent").value="";
+
+renderItems();
+alert("Note saved successfully!");
+}
+
+// ARCHIVE
+function archiveItem(id){
+let item=items.find(x=>x.id===id);
+if(item){
+item.archived=true;
+renderItems();
+}
+}
+
+// RESTORE
+function restoreItem(id){
+let item=items.find(x=>x.id===id);
+if(item){
+item.archived=false;
+renderItems();
+}
+}
+
+// DELETE
+function deleteItem(id){
+if(!confirm("Are you sure you want to delete this item?"))return;
+items=items.filter(x=>x.id!==id);
+renderItems();
+}
+
+// EDIT NOTE
+function editNote(id){
+
+let item=items.find(x=>x.id===id);
+if(!item)return;
+
+let title=prompt("Edit note title:",item.name);
+if(title===null)return;
+
+let content=prompt("Edit note content:",item.content);
+if(content===null)return;
+
+if(!title.trim()||!content.trim()){
+alert("Title and content cannot be empty.");
+return;
+}
+
+item.name=title.trim();
+item.content=content.trim();
+
+renderItems();
+}
+
+// COUNTS
+function updateCounts(){
+
+document.getElementById("totalCount").textContent=items.length;
+
+document.getElementById("activeCount").textContent=
+items.filter(x=>!x.archived).length;
+
+document.getElementById("archivedCount").textContent=
+items.filter(x=>x.archived).length;
+}
+
+// DISPLAY ITEMS
+function renderItems(){
+
+updateCounts();
+
+let list=document.getElementById("itemsList");
+list.innerHTML="";
+
+let search=document.getElementById("searchBox").value.toLowerCase();
+
+let [type,view]=currentPage.split("-");
+
+let filtered=items.filter(item=>{
+
+if(currentPage==="dashboard")return true;
+
+if(item.type!==type.slice(0,-1))return false;
+
+if(view==="active"&&item.archived)return false;
+
+if(view==="archived"&&!item.archived)return false;
+
+return true;
+});
+
+if(currentPage==="dashboard"){
+filtered=filtered.filter(item=>!item.archived);
+}
+
+filtered=filtered.filter(item=>
+(item.name+" "+(item.detail||"")+" "+(item.content||""))
+.toLowerCase().includes(search)
+);
+
+if(filtered.length===0){
+let empty=document.createElement("div");
+empty.className="empty";
+empty.textContent="📂 No items found in this section.";
+list.appendChild(empty);
+return;
+}
+
+filtered.forEach(item=>{
+
+let div=document.createElement("div");
+div.className="item";
+
+let info=document.createElement("div");
+info.className="item-info";
+
+let name=document.createElement("strong");
+
+let icon=item.type==="file"?"📄":
+item.type==="email"?"✉":"📝";
+
+name.textContent=icon+" "+item.name;
+
+let meta=document.createElement("div");
+meta.className="meta";
+meta.textContent=item.type.toUpperCase()+" • "+(item.detail||"");
+
+let status=document.createElement("span");
+status.className="status "+(item.archived?"archived":"");
+status.textContent=item.archived?"Archived":"Active";
+
+info.append(name,meta,status);
+
+if(item.content){
+let content=document.createElement("p");
+content.style.marginTop="10px";
+content.style.fontSize="13px";
+content.textContent=item.content;
+info.appendChild(content);
+}
+
+let actions=document.createElement("div");
+actions.className="actions";
+
+let action=document.createElement("button");
+action.textContent=item.archived?"Restore":"Archive";
+action.className=item.archived?"restore":"";
+action.onclick=()=>item.archived?
+restoreItem(item.id):archiveItem(item.id);
+
+actions.appendChild(action);
+
+if(item.type==="note"&&!item.archived){
+let edit=document.createElement("button");
+edit.textContent="Edit";
+edit.className="edit";
+edit.onclick=()=>editNote(item.id);
+actions.appendChild(edit);
+}
+
+let del=document.createElement("button");
+del.textContent="Delete";
+del.className="delete";
+del.onclick=()=>deleteItem(item.id);
+
+actions.appendChild(del);
+
+div.append(info,actions);
+list.appendChild(div);
+
+});
+
+}
+
+openPage("dashboard");
+
+</script>
+</body>
+</html>
